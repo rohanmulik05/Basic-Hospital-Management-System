@@ -1,1 +1,171 @@
-ad
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Management</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Hospital Management System</h1>
+
+    <div class="container">
+        <h2>Add Doctor</h2>
+        <input type="text" id="doctorName" placeholder="Doctor Name">
+        <input type="text" id="specialty" placeholder="Specialty">
+        <button onclick="addDoctor()">Add Doctor</button>
+    </div>
+
+    <div class="container">
+        <h2>Doctors List</h2>
+        <ul id="doctorsList"></ul>
+    </div>
+
+    <div class="container">
+        <h2>Add Patient</h2>
+        <input type="text" id="patientName" placeholder="Patient Name">
+        <input type="number" id="age" placeholder="Age">
+        <input type="number" id="doctorId" placeholder="Doctor ID">
+        <button onclick="addPatient()">Add Patient</button>
+    </div>
+
+    <div class="container">
+        <h2>Patients List</h2>
+        <ul id="patientsList"></ul>
+    </div>
+
+    <div class="container">
+        <h2>Schedule Appointment</h2>
+        <input type="number" id="appointmentPatientId" placeholder="Patient ID">
+        <input type="number" id="appointmentDoctorId" placeholder="Doctor ID">
+        <input type="datetime-local" id="appointmentDate" placeholder="Date and Time">
+        <button onclick="scheduleAppointment()">Schedule Appointment</button>
+    </div>
+
+    <div class="container">
+        <h2>Appointments List</h2>
+        <ul id="appointmentsList"></ul>
+    </div>
+
+    <script>
+        async function fetchDoctors() {
+    const response = await fetch('http://localhost:3000/doctors');
+    const doctors = await response.json();
+    const doctorsList = document.getElementById('doctorsList');
+    doctorsList.innerHTML = '';
+    doctors.forEach(doctor => {
+        const li = document.createElement('li');
+        li.textContent = `ID: ${doctor.id} - ${doctor.name} (${doctor.specialty}) `; // Include ID
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.onclick = () => deleteDoctor(doctor.id);
+        li.appendChild(deleteButton);
+        doctorsList.appendChild(li);
+    });
+}
+
+
+async function fetchPatients() {
+    const response = await fetch('http://localhost:3000/patients');
+    const patients = await response.json();
+    const patientsList = document.getElementById('patientsList');
+    patientsList.innerHTML = '';
+    patients.forEach(patient => {
+        const li = document.createElement('li');
+        li.textContent = `ID: ${patient.id} - ${patient.name}, Age: ${patient.age}, Doctor ID: ${patient.doctor_id} `; // Include ID
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.onclick = () => deletePatient(patient.id);
+        li.appendChild(deleteButton);
+        patientsList.appendChild(li);
+    });
+}
+
+
+async function fetchAppointments() {
+    const response = await fetch('http://localhost:3000/appointments');
+    const appointments = await response.json();
+    const appointmentsList = document.getElementById('appointmentsList');
+    appointmentsList.innerHTML = '';
+    appointments.forEach(appointment => {
+        const li = document.createElement('li');
+        li.textContent = `ID: ${appointment.id} - Patient ID: ${appointment.patient_id}, Doctor ID: ${appointment.doctor_id}, Date: ${appointment.appointment_date} `; // Include appointment ID
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.onclick = () => deleteAppointment(appointment.id);
+        li.appendChild(deleteButton);
+        appointmentsList.appendChild(li);
+    });
+}
+
+
+async function addDoctor() {
+    const name = document.getElementById('doctorName').value;
+    const specialty = document.getElementById('specialty').value;
+    const response = await fetch('http://localhost:3000/doctors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, specialty })
+    });
+    const newDoctor = await response.json();
+    fetchDoctors(); // Refresh the list
+    alert(`Doctor added with ID: ${newDoctor.id}`); // Show the new ID
+}
+
+async function addPatient() {
+    const name = document.getElementById('patientName').value;
+    const age = document.getElementById('age').value;
+    const doctor_id = document.getElementById('doctorId').value;
+    const response = await fetch('http://localhost:3000/patients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, age, doctor_id })
+    });
+    const newPatient = await response.json();
+    fetchPatients(); // Refresh the list
+    alert(`Patient added with ID: ${newPatient.id}`); // Show the new ID
+}
+
+
+
+        async function scheduleAppointment() {
+            const patient_id = document.getElementById('appointmentPatientId').value;
+            const doctor_id = document.getElementById('appointmentDoctorId').value;
+            const appointment_date = document.getElementById('appointmentDate').value;
+            await fetch('http://localhost:3000/appointments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ patient_id, doctor_id, appointment_date })
+            });
+            fetchAppointments();
+        }
+
+        async function deleteDoctor(id) {
+    await fetch(`http://localhost:3000/doctors/${id}`, {
+        method: 'DELETE'
+    });
+    fetchDoctors();
+}
+
+async function deletePatient(id) {
+    await fetch(`http://localhost:3000/patients/${id}`, {
+        method: 'DELETE'
+    });
+    fetchPatients();
+}
+
+async function deleteAppointment(id) {
+    await fetch(`http://localhost:3000/appointments/${id}`, {
+        method: 'DELETE'
+    });
+    fetchAppointments();
+}
+
+
+        // Initial fetch calls
+        fetchDoctors();
+        fetchPatients();
+        fetchAppointments();
+    </script>
+</body>
+</html>
